@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,6 +41,9 @@ public class Inventory : MonoBehaviour
 
     [SerializeField]
     private Transform dropPoint;
+
+    [SerializeField]
+    private EquipementLibrary equipementLibrary;
 
     public static Inventory instance;
 
@@ -141,8 +145,22 @@ public class Inventory : MonoBehaviour
     }
     public void EquipActionButton()
     {
-        print("Equip Item : " + itemCurrentlySelected.name);
-        CloseActionPanel();
+
+        EquipementLibraryItem equipementLibraryItem = equipementLibrary.content.Where(elem => elem.itemData == itemCurrentlySelected).First();
+
+        if(equipementLibraryItem != null)
+        {
+            for (int i = 0; i < equipementLibraryItem.elementsToDisable.Length; i++)
+            {
+                equipementLibraryItem.elementsToDisable[i].SetActive(false);
+            }
+            equipementLibraryItem.itemPrefab.SetActive(true);
+        }else
+        {
+            Debug.LogError("Equipement : " + itemCurrentlySelected.name + " non existant dans la librairie des équipements");
+        }
+
+            CloseActionPanel();
     }
     public void DropActionButton()
     {
