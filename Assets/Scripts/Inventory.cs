@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class Inventory : MonoBehaviour
 {
+    [Header("Inventory Panel References")]
+
     [SerializeField]
     private List<ItemData> content = new List<ItemData>();
 
@@ -16,6 +18,9 @@ public class Inventory : MonoBehaviour
     private Transform inventorySlotParent;
 
     const int InventorySize = 24;
+
+    [SerializeField]
+    private Transform dropPoint;
 
     [Header("Action Panel References")]
 
@@ -39,11 +44,27 @@ public class Inventory : MonoBehaviour
     [SerializeField]
     private Sprite emptySlotVisual;
 
-    [SerializeField]
-    private Transform dropPoint;
+    [Header("Equipement Panel References")]
 
     [SerializeField]
     private EquipementLibrary equipementLibrary;
+
+    [SerializeField]
+    private Image headSlotImage;
+
+    [SerializeField]
+    private Image chestSlotImage;
+
+    [SerializeField]
+    private Image handsSlotImage;
+
+    [SerializeField]
+    private Image legslotImage;
+
+    [SerializeField]
+    private Image feetSlotImage;
+
+    private bool isOpen = false;
 
     public static Inventory instance;
 
@@ -61,7 +82,14 @@ public class Inventory : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.I))
         {
-            inventoryPanel.SetActive(!inventoryPanel.activeSelf);
+            if (isOpen)
+            {
+                CloseInventory();
+            }
+            else
+            {
+                OpenInvetory();
+            }
         }
     }
 
@@ -71,15 +99,24 @@ public class Inventory : MonoBehaviour
         RefreshContent();
     }
 
+    private void OpenInvetory()
+    {
+        inventoryPanel.SetActive(true);
+        isOpen = true;
+    }
+
     public void CloseInventory()
     {
         inventoryPanel.SetActive(false);
+        actionPanel.SetActive(false);
+        ToolTipSysteme.instance.Hide();
+        isOpen = false;
     }
 
     private void RefreshContent()
     {
         //Clear all slot
-        for(int i =0; i < inventorySlotParent.childCount; i++)
+        for (int i = 0; i < inventorySlotParent.childCount; i++)
         {
             Slot currentSlot = inventorySlotParent.GetChild(i).GetComponent<Slot>();
             currentSlot.item = null;
@@ -109,7 +146,7 @@ public class Inventory : MonoBehaviour
             actionPanel.SetActive(false);
             return;
         }
-            
+
 
         switch (item.itemType)
         {
@@ -148,19 +185,42 @@ public class Inventory : MonoBehaviour
 
         EquipementLibraryItem equipementLibraryItem = equipementLibrary.content.Where(elem => elem.itemData == itemCurrentlySelected).First();
 
-        if(equipementLibraryItem != null)
+        if (equipementLibraryItem != null)
         {
             for (int i = 0; i < equipementLibraryItem.elementsToDisable.Length; i++)
             {
                 equipementLibraryItem.elementsToDisable[i].SetActive(false);
             }
             equipementLibraryItem.itemPrefab.SetActive(true);
-        }else
+
+            switch (itemCurrentlySelected.equipementType)
+            {
+                case EquipementType.Head:
+                    headSlotImage.sprite = itemCurrentlySelected.visual;
+                    break;
+                case EquipementType.Chest:
+                    chestSlotImage.sprite = itemCurrentlySelected.visual;
+                    break;
+                case EquipementType.Hands:
+                    handsSlotImage.sprite = itemCurrentlySelected.visual;
+                    break;
+                case EquipementType.Legs:
+                    legslotImage.sprite = itemCurrentlySelected.visual;
+                    break;
+                case EquipementType.Feet:
+                    feetSlotImage.sprite = itemCurrentlySelected.visual;
+                    break;
+            }
+
+            content.Remove(itemCurrentlySelected);
+            RefreshContent();
+        }
+        else
         {
             Debug.LogError("Equipement : " + itemCurrentlySelected.name + " non existant dans la librairie des équipements");
         }
 
-            CloseActionPanel();
+        CloseActionPanel();
     }
     public void DropActionButton()
     {
